@@ -62,7 +62,7 @@ sub render_messages
 	return $frag if (!$epm->is_enabled());
 
 	#my $youtube_dl = $repository->get_conf( 'executables', 'youtube-dl' );
-	my $youtube_dl = $repo->get_conf( "executables", "youtube-dl" );
+	my $youtube_dl = $repo->get_conf( "executables", "youtubedl" );
 
 	if (!defined($youtube_dl) || (!-e $youtube_dl)) {
 		$frag->appendChild( $repo->render_message( 'error', $self->html_phrase( 'error:not_configured' ) ) );
