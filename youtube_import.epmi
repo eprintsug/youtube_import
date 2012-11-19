@@ -1,0 +1,131 @@
+<?xml version='1.0' encoding='utf-8'?>
+<epm xmlns='http://eprints.org/ep2/data/2.0' id='http://eprints-devel.localdomain:8080/id/epm/youtube_import' uuid='urn:uuid:00d8aab2-dc06-5f69-9061-453ec025ee1c'>
+  <epmid>youtube_import</epmid>
+  <eprintid>241</eprintid>
+  <uri>http://bazaar.eprints.org/id/epm/youtube_import</uri>
+  <documents>
+    <document id='http://eprints-devel.localdomain:8080/id/document/1295' uuid='urn:uuid:a22af23f-6919-568a-b5e1-4bfcd20d0379'>
+      <docid>1295</docid>
+      <rev_number>1</rev_number>
+      <files>
+        <file id='http://eprints-devel.localdomain:8080/id/file/4701'>
+          <fileid>4701</fileid>
+          <datasetid>document</datasetid>
+          <objectid>1295</objectid>
+          <filename>epm/youtube_import/cfg/cfg.d/youtube_import.pl</filename>
+          <mime_type>text/plain</mime_type>
+          <hash>84bf97f80ec688ec545f0fb6aa4c9a90</hash>
+          <hash_type>MD5</hash_type>
+          <filesize>1151</filesize>
+          <mtime>2012-08-21 11:52:39</mtime>
+        </file>
+        <file id='http://eprints-devel.localdomain:8080/id/file/4702'>
+          <fileid>4702</fileid>
+          <datasetid>document</datasetid>
+          <objectid>1295</objectid>
+          <filename>epm/youtube_import/cfg/cfg.d/youtube_internal.pl</filename>
+          <mime_type>text/plain</mime_type>
+          <hash>8dfd24344f831d519834f317ca6f17d5</hash>
+          <hash_type>MD5</hash_type>
+          <filesize>55</filesize>
+          <mtime>2012-08-21 11:52:39</mtime>
+        </file>
+        <file id='http://eprints-devel.localdomain:8080/id/file/4703'>
+          <fileid>4703</fileid>
+          <datasetid>document</datasetid>
+          <objectid>1295</objectid>
+          <filename>lang/en/phrases/youtube_import.xml</filename>
+          <mime_type>application/xml</mime_type>
+          <hash>8d2ee840cc123389ce5e7681edd79386</hash>
+          <hash_type>MD5</hash_type>
+          <filesize>654</filesize>
+          <mtime>2012-08-21 11:52:39</mtime>
+        </file>
+        <file id='http://eprints-devel.localdomain:8080/id/file/4704'>
+          <fileid>4704</fileid>
+          <datasetid>document</datasetid>
+          <objectid>1295</objectid>
+          <filename>plugins/EPrints/Plugin/Import/Youtube.pm</filename>
+          <mime_type>text/html</mime_type>
+          <hash>0608400d6c2ae5a5c45ddcad8a132b0d</hash>
+          <hash_type>MD5</hash_type>
+          <filesize>6643</filesize>
+          <mtime>2012-08-21 11:52:39</mtime>
+        </file>
+        <file id='http://eprints-devel.localdomain:8080/id/file/4705'>
+          <fileid>4705</fileid>
+          <datasetid>document</datasetid>
+          <objectid>1295</objectid>
+          <filename>plugins/EPrints/Plugin/Screen/EPMC/Youtube_Import.pm</filename>
+          <mime_type>text/plain</mime_type>
+          <hash>03f0e4bccd9c337fc1e085099af8b6b0</hash>
+          <hash_type>MD5</hash_type>
+          <filesize>2252</filesize>
+          <mtime>2012-08-21 11:52:39</mtime>
+        </file>
+        <file id='http://eprints-devel.localdomain:8080/id/file/4706'>
+          <fileid>4706</fileid>
+          <datasetid>document</datasetid>
+          <objectid>1295</objectid>
+          <filename>static/images/epm/youtube_import.png</filename>
+          <mime_type>image/png</mime_type>
+          <hash>64b1bbb996a3df30c3a0f05004dd5bb5</hash>
+          <hash_type>MD5</hash_type>
+          <filesize>137804</filesize>
+          <mtime>2012-08-21 11:52:39</mtime>
+        </file>
+      </files>
+      <eprintid>241</eprintid>
+      <pos>1</pos>
+      <placement>1</placement>
+      <mime_type>image/png</mime_type>
+      <format>image</format>
+      <language>en</language>
+      <security>public</security>
+      <main>static/images/epm/youtube_import.png</main>
+      <content>install</content>
+    </document>
+    <document id='http://eprints-devel.localdomain:8080/id/document/1296' uuid='urn:uuid:e2f74da8-ce05-5084-9aba-740accbc8a77'>
+      <docid>1296</docid>
+      <rev_number>1</rev_number>
+      <files>
+        <file id='http://eprints-devel.localdomain:8080/id/file/4707'>
+          <fileid>4707</fileid>
+          <datasetid>document</datasetid>
+          <objectid>1296</objectid>
+          <filename>static/images/epm/youtube_import.png</filename>
+          <mime_type>image/png</mime_type>
+          <hash>64b1bbb996a3df30c3a0f05004dd5bb5</hash>
+          <hash_type>MD5</hash_type>
+          <filesize>137804</filesize>
+          <mtime>2012-08-21 11:52:39</mtime>
+        </file>
+      </files>
+      <eprintid>241</eprintid>
+      <pos>2</pos>
+      <placement>2</placement>
+      <mime_type>image/png</mime_type>
+      <format>image</format>
+      <language>en</language>
+      <security>public</security>
+      <main>static/images/epm/youtube_import.png</main>
+      <content>coverimage</content>
+    </document>
+  </documents>
+  <version>1.0.0</version>
+  <controller>EPMC::Youtube_Import</controller>
+  <creators>
+    <item>
+      <name>
+        <family>Tarrant</family>
+        <given>David</given>
+      </name>
+      <id>davetaz@ecs.soton.ac.uk</id>
+    </item>
+  </creators>
+  <datestamp>2012-08-21 11:52:38</datestamp>
+  <title>YouTube Import Plugin</title>
+  <description>This import plug-in takes a Youtube URL and imports the metadata and copy of the video. It also links to the &quot;official&quot; youtube version of the video. Please note imports may take some time. ONLY supports one video at a time!</description>
+  <requirements>youtube-dl from http://rg3.github.com/youtube-dl/.</requirements>
+  <icon>images/epm/youtube_import.png</icon>
+</epm>
