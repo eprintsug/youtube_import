@@ -237,13 +237,7 @@ sub trigger_download_video
 		my $url = $eprint->value( "source" );
 
 		if( $url =~ m{^http://(www\.youtube\.com|vimeo.com)/} ) {
-			my $has_copy = 0;
-			DOC: foreach my $doc ($eprint->get_all_documents) {
-				foreach my $rel (@{$eprint->value( "relation_type" )}) {
-					$has_copy = 1, last if $rel eq EPrints::Utils::make_relation( "isYoutubeVideo" );
-				}
-			}
-			if( !$has_copy ) {
+			if( !has_video($eprint) ) {
 				EPrints::DataObj::EventQueue->create_unique( $repo, {
 					pluginid => "Import::Youtube",
 					action => "download_video",
@@ -252,6 +246,30 @@ sub trigger_download_video
 			}
 		}
 	}
+}
+
+sub has_video
+{
+	my ($eprint, $url) = @_;
+
+	my $has_copy = 0;
+
+	DOC: foreach my $doc ($eprint->get_all_documents)
+	{
+		foreach my $rel (@{$doc->value( "relation" )})
+		{
+			if(
+				$rel->{type} eq EPrints::Utils::make_relation( "isYoutubeVideo" ) &&
+				(!defined $url || $url eq $rel->{uri})
+			  )
+			{
+				$has_copy = 1;
+				last DOC;
+			}
+		}
+	}
+
+	return $has_copy;
 }
 
 sub download_video
@@ -271,7 +289,7 @@ my \$repo = EPrints->new->repository('$repoid');
 EOP
 
 	my $otmp = File::Temp->new;
-	$repo->system->read_perl_script($repo, $otmp, -e => $script);
+	EPrints->system->read_perl_script($repo, $otmp, -e => $script);
 
 	return;
 }
@@ -282,6 +300,11 @@ sub download_video_daemon
 
 	my $repo = $self->{session};
 	$repo->get_database->{dbh}->{InactiveDestroy} = 1;
+
+	my $logfile = $repo->config('base_path') . '/var/indexer.log';
+	close(STDIN);
+	open(STDOUT, ">>", $logfile);
+	open(STDERR, ">>", $logfile);
 
 	use POSIX;
 	POSIX::setsid() or die "setsid: $!";
@@ -296,49 +319,62 @@ sub download_video_daemon
 	$repo->get_database->{dbh}->{InactiveDestroy} = 0;
 	chdir('/');
 	umask 0;
-	close(STDIN);
 
 	my $eprint = $repo->dataset('eprint')->dataobj($eprintid);
+
 	return if !defined $eprint; # eprint has gone away
 
-	my $official_url = $eprint->value( "official_url" );
+	my @urls;
+	if ($eprint->exists_and_set( "official_url" )) {
+		push @urls, $eprint->value( "official_url" );
+	}
+	if ($eprint->exists_and_set( "related_url" )) {
+		push @urls, @{$eprint->value( "related_url_url" )};
+	}
 
-	my $tmp = File::Temp->new;
+	URL: foreach my $url (@urls)
+	{
+		next URL if $url !~ m{^http://(www\.youtube\.com|vimeo.com)/};
 
-	EPrints::Platform::read_exec($repo, $tmp, 'youtube-filename',
-		VIDURL => $official_url,
+		next URL if has_video($eprint, $url); # already downloaded
+
+		my $tmp = File::Temp->new;
+
+		EPrints::Platform::read_exec($repo, $tmp, 'youtube-filename',
+			VIDURL => $url,
+			);
+
+		my $filename = <$tmp>;
+		chomp($filename);
+
+		$tmp = File::Temp->new;
+		$tmp = "$tmp";
+
+		EPrints::Platform::exec($repo, 'youtube-download',
+			VIDURL => $url,
+			OUTPUT => $tmp,
 		);
+		open(my $fh, "<", $tmp);
 
-	my $filename = <$tmp>;
-	chomp($filename);
+		$eprint->create_subdataobj( "documents", {
+			main => $filename,
+			format => "video",
+			files => [{
+				filename => $filename,
+				filesize => (-s $fh),
+				_content => $fh,
+			}],
+			relation => [
+				{
+					type => EPrints::Utils::make_relation( "isYoutubeVideo" ),
+					uri => $url,
+				},
+			],
+		});
 
-	$tmp = File::Temp->new;
-	$tmp = "$tmp";
-
-	EPrints::Platform::exec($repo, 'youtube-download',
-		VIDURL => $official_url,
-		OUTPUT => $tmp,
-	);
-	open(my $fh, "<", $tmp);
-
-	$eprint->create_subdataobj( "documents", {
-		main => $filename,
-		format => "video",
-		files => [{
-			filename => $filename,
-			filesize => (-s $fh),
-			_content => $fh,
-		}],
-		relation => [
-			{
-				type => EPrints::Utils::make_relation( "isYoutubeVideo" ),
-				uri => $official_url,
-			},
-		],
-	});
-
-	close($fh);
-	unlink($tmp);
+		close($fh);
+		unlink($tmp);
+	}
 
 	return;
 }

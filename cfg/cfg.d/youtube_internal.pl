@@ -11,6 +11,9 @@ $c->{plugins}{"Export::YoutubeDownload"}{params}{disable} = 0;
 #                $metadata_tab
 #        );
 
+{
+no warnings;
+
 sub kultur_render_youtube
 {
 	my( $session, $dataset, $eprint, $docs ) = @_;
@@ -32,4 +35,6 @@ sub kultur_render_youtube
 	}
 
 	return ();
+}
+
 }
