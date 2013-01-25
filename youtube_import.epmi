@@ -26,9 +26,9 @@
         </file>
         <file>
           <filename>plugins/EPrints/Plugin/Import/Youtube.pm</filename>
-          <hash>f15a0d53e74da77c485e98bc94a09bb1</hash>
+          <hash>4260d6a9168b23c4c66af8cae8ec3515</hash>
           <hash_type>MD5</hash_type>
-          <filesize>9410</filesize>
+          <filesize>9189</filesize>
         </file>
         <file>
           <filename>plugins/EPrints/Plugin/Screen/EPMC/Youtube_Import.pm</filename>

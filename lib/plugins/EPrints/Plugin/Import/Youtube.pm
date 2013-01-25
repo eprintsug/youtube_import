@@ -283,13 +283,28 @@ sub download_video
 
 	my $script = <<"EOP";
 use EPrints;
+use POSIX;
+
+POSIX::setsid() or die "setsid: \$!";
+close(STDIN);
+
+my \$pid = fork();
+die "fork: \$!" if !defined \$pid;
+
+exit if \$pid;
+
+chdir('/');
+umask 0;
 
 my \$repo = EPrints->new->repository('$repoid');
 \$repo->plugin('Import::Youtube')->download_video_daemon('$eprintid');
 EOP
 
-	my $otmp = File::Temp->new;
-	EPrints->system->read_perl_script($repo, $otmp, -e => $script);
+	system(
+		$repo->config("executables", "perl"),
+		-I => $repo->config("base_path")."/perl_lib",
+		-e => $script,
+	);
 
 	return;
 }
@@ -299,26 +314,6 @@ sub download_video_daemon
 	my ($self, $eprintid) = @_;
 
 	my $repo = $self->{session};
-	$repo->get_database->{dbh}->{InactiveDestroy} = 1;
-
-	my $logfile = $repo->config('base_path') . '/var/indexer.log';
-	close(STDIN);
-	open(STDOUT, ">>", $logfile);
-	open(STDERR, ">>", $logfile);
-
-	use POSIX;
-	POSIX::setsid() or die "setsid: $!";
-
-	my $pid = fork();
-	die "fork: $!" if !defined $pid;
-
-	if ($pid) {
-		return;
-	}
-
-	$repo->get_database->{dbh}->{InactiveDestroy} = 0;
-	chdir('/');
-	umask 0;
 
 	my $eprint = $repo->dataset('eprint')->dataobj($eprintid);
 
