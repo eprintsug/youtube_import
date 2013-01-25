@@ -21,9 +21,10 @@ sub new
 	my $self = $class->SUPER::new( %opts );
 
 	$self->{name} = "Youtube";
-	$self->{produce} = [qw( dataobj/eprint dataobj/document )];
+	$self->{produce} = [qw( list/eprint )];
 	$self->{accept} = [qw( )];
 	$self->{advertise} = 1;
+	$self->{import_documents} = 1; # 3.2 compat.
 
 	return $self;
 }
@@ -32,33 +33,24 @@ sub input_fh
 {
 	my( $self, %opts ) = @_;
 
-	my $repo = $self->repository;
+	my $repo = $self->{session};
 
 	my @ids;
 
-	my $fh = $opts{"fh"};
- 
-	my $url = <$fh>;
-	chomp($url);
-
 	my $dataset = $opts{dataset};
 
-	my $epdata = $self->url_to_epdata($url);
-
-	my $dataobj = $self->epdata_to_dataobj( $dataset, $epdata );
-
-	if( defined $dataobj )
+	my $fh = $opts{"fh"};
+ 
+	while(defined(my $url = <$fh>))
 	{
-		# queue archiving the youtube source video
-		EPrints::DataObj::EventQueue->create_unique(
-			$repo,
-			{
-				pluginid => $self->get_id,
-				action => "download_video",
-				params => [$dataobj->internal_uri],
-			}
-		);
-		push @ids, $dataobj->id;
+		chomp($url);
+		next if $url !~ m{^https?:};
+
+		my $epdata = $self->url_to_epdata($url);
+
+		my $dataobj = $self->epdata_to_dataobj( $dataset, $epdata );
+
+		push @ids, $dataobj->id if defined $dataobj;
 	}
 
 	return EPrints::List->new(
@@ -100,11 +92,15 @@ sub meta_info
 
 	my $content = $r->content;
 
-	if( $content =~ /<span[^>]* id="eow-date"[^>]*>([^<]+)</ ) {
-		$epdata->{date} = Time::Piece
-			->strptime($1, "%d %b %Y")
-			->strftime("%Y-%m-%d");
-		$epdata->{date_type} = "published";
+	if( $content =~ /<span[^>]* id="eow-date"[^>]*>\s*([^<]+)</ ) {
+		my $time = eval { Time::Piece->strptime($1, "%d %b %Y") };
+		if( $@ ) {
+			print STDERR "Error parsing time for $url: $@";
+		}
+		else {
+			$epdata->{date} = $time->strftime("%Y-%m-%d");
+			$epdata->{date_type} = "published";
+		}
 	}
 
 	my %meta;
@@ -123,15 +119,84 @@ sub meta_info
 		$meta{$property} = $content;
 	}
 
+	# <meta or <link
+	if( !$meta{thumbnail_url} && $content =~ /<([^>]+\bitemprop="thumbnailUrl"[^>]*)>/i ) {
+		if( $1 =~ /(?:content|href)="([^"]+)"/i ) {
+			$meta{thumbnail_url} = $1;
+		}
+	}
+
+	# HTML 5 scary regexp parsing
+	pos($content) = 0;
+	while( $content =~ m{<(\w+)([^>]+\bitemscope[^>]+)>(.*?)</\1>}sg ) {
+		my( $tag, $contents ) = ($2, $3);
+		my $prefix;
+		if ($tag =~ /\bitemprop="([^"]+)"/ ) {
+			$prefix = $1;
+			if( $tag =~ /\bitemtype="([^"]+)/ ) {
+				$prefix .= "{$1}";
+			}
+			while( $contents =~ m{<([^>]+\bitemprop="([^"]+)"[^>]*)>}g ) {
+				my $prop = $2;
+				if( $1 =~ /(?:content|href)="([^"]+)"/ ) {
+					$meta{"$prefix.$prop"} = $1;
+				}
+			}
+		}
+	}
+
 	for(values(%meta)) {
 		$_ = HTML::Entities::decode_entities($_);
 	}
 
-	$epdata->{title} = $meta{title};
-	$epdata->{abstract} = $meta{description};
+	$meta{thumbnail_url} ||= $meta{'video{http://schema.org/VideoObject}.thumbnailUrl'};
+
+	$epdata->{title} = $meta{"og:title"} || $meta{title};
+	$epdata->{abstract} = $meta{"og:description"} || $meta{description};
 	$epdata->{keywords} = $meta{keywords};
 	$epdata->{official_url} = $meta{"og:url"};
+	$epdata->{source} = $meta{"og:url"};
 
+	if( $meta{thumbnail_url} ) {
+		# fetch the thumbnail
+		$r = $ua->get( $meta{thumbnail_url} );
+
+		$meta{thumbnail_url} =~ m{/([^/]+)$};
+		my $thumbnail_filename = $1;
+
+		push @{$epdata->{documents}}, {
+			main => $thumbnail_filename,
+			format => "image",
+			mime_type => "image/jpeg",
+			files => [{
+				filename => $thumbnail_filename,
+				filesize => length($r->content),
+				mime_type => "image/jpeg",
+				_content => $r->content_ref
+			}],
+		};
+	}
+
+	if( my $name = $meta{"author{http://schema.org/Person}.name"} ) {
+		my $family = $name;
+		$family =~ s/^(.+)\s+//;
+		my $given = $1;
+		$epdata->{creators} = [{
+			name => { family => $family, given => $given },
+			id => $meta{"author{http://schema.org/Person}.url"},
+		}];
+	}
+
+	if( $url =~ /www.youtube.com/ ) {
+		$self->meta_youtube( $epdata );
+	}
+}
+
+sub meta_youtube
+{
+	my( $self, $epdata ) = @_;
+
+	my $repo = $self->{repository};
 
 	# fetch the XML descriptive data for the entry
 	my $uri = URI->new('http://www.youtube.com/oembed');
@@ -140,8 +205,12 @@ sub meta_info
 		format => 'xml',
 	);
 
-	my $doc = $repo->xml->parse_url( $uri );
+	my $doc = eval { $repo->xml->parse_url( $uri ) };
+	return if !defined $doc;
+
 	my $root = $doc->documentElement;
+
+	my %meta;
 
 	for($root->childNodes) {
 		$meta{$_->nodeName} = $_->firstChild->toString;
@@ -153,25 +222,34 @@ sub meta_info
 	}];
 
 	$epdata->{publisher} = $meta{provider_name};
+}
 
+sub trigger_download_video
+{
+	my %params = @_;
 
-	# fetch the thumbnail
-	$r = $ua->get( $meta{thumbnail_url} );
+	my $repo = $params{repository};
+	my $eprint = $params{dataobj};
 
-	$meta{thumbnail_url} =~ m{/([^/]+)$};
-	my $thumbnail_filename = $1;
+	if( $eprint->exists_and_set( "source" )) {
+		my $url = $eprint->value( "source" );
 
-	push @{$epdata->{documents}}, {
-		main => $thumbnail_filename,
-		format => "image",
-		mime_type => "image/jpeg",
-		files => [{
-			filename => $thumbnail_filename,
-			filesize => length($r->content),
-			mime_type => "image/jpeg",
-			_content => $r->content_ref
-		}],
-	};
+		if( $url =~ m{^http://(www\.youtube\.com|vimeo.com)/} ) {
+			my $has_copy = 0;
+			DOC: foreach my $doc ($eprint->get_all_documents) {
+				foreach my $rel (@{$eprint->value( "relation_type" )}) {
+					$has_copy = 1, last if $rel eq EPrints::Utils::make_relation( "isYoutubeVideo" );
+				}
+			}
+			if( !$has_copy ) {
+				EPrints::DataObj::EventQueue->create_unique( $repo, {
+					pluginid => "Import::Youtube",
+					action => "download_video",
+					params => [$eprint->internal_uri],
+				});
+			}
+		}
+	}
 }
 
 sub download_video
@@ -184,7 +262,7 @@ sub download_video
 
 	my $tmp = File::Temp->new;
 
-	EPrints->system->read_exec($repo, $tmp, 'youtube-filename',
+	EPrints::Platform::read_exec($repo, $tmp, 'youtube-filename',
 		VIDURL => $official_url,
 		);
 
@@ -194,7 +272,7 @@ sub download_video
 	$tmp = File::Temp->new;
 	$tmp = "$tmp";
 
-	EPrints->system->exec($repo, 'youtube-download',
+	EPrints::Platform::exec($repo, 'youtube-download',
 		VIDURL => $official_url,
 		OUTPUT => $tmp,
 	);
@@ -236,7 +314,7 @@ sub run_youtube_player
 
 	$eprint = $eprint->[0];
 
-	my $repo = $eprint->repository;
+	my $repo = $eprint->{session};
 
 	my $frag = $repo->xml->create_document_fragment;
 
@@ -249,6 +327,15 @@ sub run_youtube_player
 						width => 420,
 						height => 315,
 						src => sprintf("http://www.youtube.com/embed/%s", $1),
+						frameborder => 0,
+						allowfullscreen => "yes"
+					) );
+		}
+		elsif( $url =~ m{^https?://vimeo.com/(\d+)} ) {
+			$frag->appendChild( $repo->xml->create_element( "iframe",
+						width => 500,
+						height => 281,
+						src => sprintf("http://player.vimeo.com/video/%s", $1),
 						frameborder => 0,
 						allowfullscreen => "yes"
 					) );

@@ -9,9 +9,9 @@
         <file>
           <filename>epm/youtube_import/cfg/cfg.d/youtube_import.pl</filename>
           <mime_type>text/plain</mime_type>
-          <hash>119ec9c4c7712688c9f3175e5177d083</hash>
+          <hash>3ad8aca70c6488961588727dab88e5c4</hash>
           <hash_type>MD5</hash_type>
-          <filesize>1730</filesize>
+          <filesize>1250</filesize>
         </file>
         <file>
           <filename>epm/youtube_import/cfg/cfg.d/youtube_internal.pl</filename>
@@ -22,35 +22,35 @@
         </file>
         <file>
           <filename>lang/en/phrases/youtube_import.xml</filename>
-          <mime_type>inode/symlink</mime_type>
+          <mime_type>application/xml</mime_type>
           <hash>8d2ee840cc123389ce5e7681edd79386</hash>
           <hash_type>MD5</hash_type>
           <filesize>654</filesize>
         </file>
         <file>
           <filename>plugins/EPrints/Plugin/Import/Youtube.pm</filename>
-          <mime_type>inode/symlink</mime_type>
-          <hash>2faf50d4699d96c82decac5dad266062</hash>
+          <mime_type>text/plain</mime_type>
+          <hash>2eca4113ac9a3cf627a9397899404e24</hash>
           <hash_type>MD5</hash_type>
-          <filesize>5662</filesize>
+          <filesize>7987</filesize>
         </file>
         <file>
           <filename>plugins/EPrints/Plugin/Screen/EPMC/Youtube_Import.pm</filename>
-          <mime_type>inode/symlink</mime_type>
+          <mime_type>text/plain</mime_type>
           <hash>2b1585cb55a56d1acb80508cae8500ab</hash>
           <hash_type>MD5</hash_type>
           <filesize>2251</filesize>
         </file>
         <file>
           <filename>static/images/epm/youtube_import.png</filename>
-          <mime_type>inode/symlink</mime_type>
+          <mime_type>image/png</mime_type>
           <hash>64b1bbb996a3df30c3a0f05004dd5bb5</hash>
           <hash_type>MD5</hash_type>
           <filesize>137804</filesize>
         </file>
       </files>
-      <mime_type>inode/symlink</mime_type>
-      <format>other</format>
+      <mime_type>image/png</mime_type>
+      <format>image</format>
       <main>static/images/epm/youtube_import.png</main>
       <content>install</content>
     </document>
@@ -58,7 +58,7 @@
       <files>
         <file>
           <filename>static/images/epm/youtube_import.png</filename>
-          <mime_type>inode/symlink</mime_type>
+          <mime_type>image/png</mime_type>
           <hash>64b1bbb996a3df30c3a0f05004dd5bb5</hash>
           <hash_type>MD5</hash_type>
           <filesize>137804</filesize>
@@ -69,7 +69,7 @@
       <content>coverimage</content>
     </document>
   </documents>
-  <version>1.0.1</version>
+  <version>1.0.3</version>
   <controller>EPMC::Youtube_Import</controller>
   <creators>
     <item>
@@ -89,10 +89,10 @@
   </creators>
   <datestamp>2012-08-21 11:52:38</datestamp>
   <title>YouTube Import Plugin</title>
-  <description>This import plug-in takes a Youtube URL and imports the metadata and copy of the video. It also links to the &quot;official&quot; youtube version of the video. Please note imports may take some time. ONLY supports one video at a time!</description>
+  <description>This import plug-in takes Youtube or Vimeo URLs and imports the metadata. The full video is downloaded as a background process (by the indexer).</description>
   <requirements>youtube-dl from http://rg3.github.com/youtube-dl/.
 
-Note! YouTube regularly changes their interface that will break youtube-dl, therefore if videos are failing to download you will need to update:
+Note! YouTube regularly changes their interface which breaks youtube-dl, therefore if videos (sources) are failing to download you will need to update:
 
 $ sudo youtube-dl --update</requirements>
   <icon>images/epm/youtube_import.png</icon>
