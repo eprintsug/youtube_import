@@ -1,1 +1,35 @@
 $c->{plugins}{"Import::Youtube"}{params}{disable} = 0;
+$c->{plugins}{"Export::YoutubeDownload"}{params}{disable} = 0;
+
+# To add a Videos (external) tab to Kultur modify kultur.pl to the following:
+#        my @tabs = (
+#                # render youtube player
+#                &kultur_render_youtube( $session, $dataset, $eprint, \@docs ),
+#                # render document tab(s)
+#                &kultur_render_documents( $session, $dataset, $eprint, \@docs ),
+#                # render metadata tab(s)
+#                $metadata_tab
+#        );
+
+sub kultur_render_youtube
+{
+	my( $session, $dataset, $eprint, $docs ) = @_;
+
+	my $frag = EPrints::Script::Compiled::run_youtube_player(
+			undef, # $self
+			{ session => $session },
+			[ $eprint ],
+		)->[0];
+
+	if ($frag->hasChildNodes) {
+		my $title = $session->html_phrase( "document_group_name_youtube" );
+
+		return {
+			id => "youtube",
+			   title => $title,
+			   content => $frag,
+		};
+	}
+
+	return ();
+}

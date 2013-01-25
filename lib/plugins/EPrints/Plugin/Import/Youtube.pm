@@ -6,6 +6,8 @@ EPrints::Plugin::Import::Youtube
 
 package EPrints::Plugin::Import::Youtube;
 
+use EPrints;
+
 use Time::Piece;
 use HTML::Entities;
 
@@ -257,6 +259,47 @@ sub download_video
 	my( $self, $eprint ) = @_;
 
 	my $repo = $eprint->{session};
+
+	my $repoid = $repo->{id};
+	my $eprintid = $eprint->id;
+
+	my $script = <<"EOP";
+use EPrints;
+
+my \$repo = EPrints->new->repository('$repoid');
+\$repo->plugin('Import::Youtube')->download_video_daemon('$eprintid');
+EOP
+
+	my $otmp = File::Temp->new;
+	$repo->system->read_perl_script($repo, $otmp, -e => $script);
+
+	return;
+}
+
+sub download_video_daemon
+{
+	my ($self, $eprintid) = @_;
+
+	my $repo = $self->{session};
+	$repo->get_database->{dbh}->{InactiveDestroy} = 1;
+
+	use POSIX;
+	POSIX::setsid() or die "setsid: $!";
+
+	my $pid = fork();
+	die "fork: $!" if !defined $pid;
+
+	if ($pid) {
+		return;
+	}
+
+	$repo->get_database->{dbh}->{InactiveDestroy} = 0;
+	chdir('/');
+	umask 0;
+	close(STDIN);
+
+	my $eprint = $repo->dataset('eprint')->dataobj($eprintid);
+	return if !defined $eprint; # eprint has gone away
 
 	my $official_url = $eprint->value( "official_url" );
 
