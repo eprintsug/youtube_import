@@ -1,48 +1,63 @@
 <?xml version='1.0' encoding='utf-8'?>
-<epm xmlns='http://eprints.org/ep2/data/2.0' id='/id/epm/youtube_import' uuid='urn:uuid:88cde412-082c-5a75-9b5e-79326ead959a'>
+<epm xmlns='http://eprints.org/ep2/data/2.0' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' id='http://eprints-devel.localdomain:8080/id/epm/youtube_import' uuid='urn:uuid:00d8aab2-dc06-5f69-9061-453ec025ee1c'>
   <epmid>youtube_import</epmid>
   <eprintid>241</eprintid>
-  <uri>/id/epm/youtube_import</uri>
+  <uri>http://eprints-devel.localdomain:8080/id/epm/youtube_import</uri>
   <documents>
     <document>
       <files>
         <file>
           <filename>epm/youtube_import/cfg/cfg.d/youtube_import.pl</filename>
+          <mime_type>text/plain</mime_type>
           <hash>3ad8aca70c6488961588727dab88e5c4</hash>
           <hash_type>MD5</hash_type>
           <filesize>1250</filesize>
         </file>
         <file>
           <filename>epm/youtube_import/cfg/cfg.d/youtube_internal.pl</filename>
-          <hash>3b3d101b2bb1ee26c06156f44a3155b5</hash>
+          <mime_type>text/plain</mime_type>
+          <hash>d735bf1c3b40fcd5f37bdd959bccddc0</hash>
           <hash_type>MD5</hash_type>
-          <filesize>979</filesize>
+          <filesize>1056</filesize>
         </file>
         <file>
           <filename>lang/en/phrases/youtube_import.xml</filename>
-          <hash>685e8bf45b085a7a9828c52025e436bd</hash>
+          <mime_type>application/xml</mime_type>
+          <hash>51926abe3086f1e2d3c2893c8310c3c8</hash>
           <hash_type>MD5</hash_type>
-          <filesize>729</filesize>
+          <filesize>820</filesize>
         </file>
         <file>
           <filename>plugins/EPrints/Plugin/Import/Youtube.pm</filename>
+          <mime_type>text/plain</mime_type>
           <hash>4260d6a9168b23c4c66af8cae8ec3515</hash>
           <hash_type>MD5</hash_type>
           <filesize>9189</filesize>
         </file>
         <file>
           <filename>plugins/EPrints/Plugin/Screen/EPMC/Youtube_Import.pm</filename>
+          <mime_type>text/plain</mime_type>
           <hash>2b1585cb55a56d1acb80508cae8500ab</hash>
           <hash_type>MD5</hash_type>
           <filesize>2251</filesize>
         </file>
         <file>
+          <filename>plugins/EPrints/Plugin/Screen/EPrint/UploadMethod/Youtube.pm</filename>
+          <mime_type>text/plain</mime_type>
+          <hash>23eda8da5541c2aa4b16086457d16d62</hash>
+          <hash_type>MD5</hash_type>
+          <filesize>2147</filesize>
+        </file>
+        <file>
           <filename>static/images/epm/youtube_import.png</filename>
+          <mime_type>image/png</mime_type>
           <hash>64b1bbb996a3df30c3a0f05004dd5bb5</hash>
           <hash_type>MD5</hash_type>
           <filesize>137804</filesize>
         </file>
       </files>
+      <mime_type>image/png</mime_type>
+      <format>image</format>
       <main>static/images/epm/youtube_import.png</main>
       <content>install</content>
     </document>
@@ -50,6 +65,7 @@
       <files>
         <file>
           <filename>static/images/epm/youtube_import.png</filename>
+          <mime_type>image/png</mime_type>
           <hash>64b1bbb996a3df30c3a0f05004dd5bb5</hash>
           <hash_type>MD5</hash_type>
           <filesize>137804</filesize>
@@ -60,7 +76,7 @@
       <content>coverimage</content>
     </document>
   </documents>
-  <version>1.0.3</version>
+  <version>1.0.5</version>
   <controller>EPMC::Youtube_Import</controller>
   <creators>
     <item>
@@ -80,7 +96,9 @@
   </creators>
   <datestamp>2012-08-21 11:52:38</datestamp>
   <title>YouTube Import Plugin</title>
-  <description>This import plug-in takes Youtube or Vimeo URLs and imports the metadata. The full video is downloaded as a background process (by the indexer).</description>
+  <description>This import plug-in takes Youtube or Vimeo URLs and imports the metadata. The full video is downloaded as a background process (by the indexer).
+
+Also adds a &quot;Upload from Youtube&quot; document tab.</description>
   <requirements>youtube-dl from http://rg3.github.com/youtube-dl/.
 
 Note! YouTube regularly changes their interface which breaks youtube-dl, therefore if videos (sources) are failing to download you will need to update:

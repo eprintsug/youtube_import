@@ -1,5 +1,6 @@
 $c->{plugins}{"Import::Youtube"}{params}{disable} = 0;
 $c->{plugins}{"Export::YoutubeDownload"}{params}{disable} = 0;
+$c->{plugins}{"Screen::EPrint::UploadMethod::Youtube"}{params}{disable} = 0;
 
 # To add a Videos (external) tab to Kultur modify kultur.pl to the following:
 #        my @tabs = (
