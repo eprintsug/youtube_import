@@ -189,7 +189,7 @@ sub meta_info
 		}];
 	}
 
-	if( $url =~ /www.youtube.com/ ) {
+	if( $url =~ /youtube.com/ ) {
 		$self->meta_youtube( $epdata );
 	}
 }
@@ -201,7 +201,7 @@ sub meta_youtube
 	my $repo = $self->{repository};
 
 	# fetch the XML descriptive data for the entry
-	my $uri = URI->new('http://www.youtube.com/oembed');
+	my $uri = URI->new('youtube.com/oembed');
 	$uri->query_form(
 		url => $epdata->{official_url},
 		format => 'xml',
@@ -400,7 +400,7 @@ sub run_youtube_player
 			$frag->appendChild( $repo->xml->create_element( "iframe",
 						width => 420,
 						height => 315,
-						src => sprintf("http://www.youtube.com/embed/%s", $1),
+						src => sprintf("youtube.com/embed/%s", $1),
 						frameborder => 0,
 						allowfullscreen => "yes"
 					) );
@@ -409,7 +409,7 @@ sub run_youtube_player
 			$frag->appendChild( $repo->xml->create_element( "iframe",
 						width => 500,
 						height => 281,
-						src => sprintf("http://player.vimeo.com/video/%s", $1),
+						src => sprintf("//player.vimeo.com/video/%s", $1),
 						frameborder => 0,
 						allowfullscreen => "yes"
 					) );
