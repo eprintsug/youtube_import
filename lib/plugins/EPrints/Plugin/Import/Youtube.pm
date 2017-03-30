@@ -152,6 +152,9 @@ sub meta_info
 	}
 
 	$meta{thumbnail_url} ||= $meta{'video{http://schema.org/VideoObject}.thumbnailUrl'};
+    ##vimeo thumbnail image
+    $meta{thumbnail_url} ||= $meta{'og:image'};
+
 
 	$epdata->{title} = $meta{"og:title"} || $meta{title};
 	$epdata->{abstract} = $meta{"og:description"} || $meta{description};
@@ -189,7 +192,7 @@ sub meta_info
 		}];
 	}
 
-	if( $url =~ /youtube.com/ ) {
+	if( $url =~ /www.youtube.com/ ) {
 		$self->meta_youtube( $epdata );
 	}
 }
@@ -201,7 +204,7 @@ sub meta_youtube
 	my $repo = $self->{repository};
 
 	# fetch the XML descriptive data for the entry
-	my $uri = URI->new('youtube.com/oembed');
+	my $uri = URI->new('http://www.youtube.com/oembed');
 	$uri->query_form(
 		url => $epdata->{official_url},
 		format => 'xml',
@@ -236,7 +239,7 @@ sub trigger_download_video
 	if( $eprint->exists_and_set( "source" )) {
 		my $url = $eprint->value( "source" );
 
-		if( $url =~ m{^http://(www\.youtube\.com|vimeo.com)/} ) {
+		if( $url =~ m{^https?://(www\.youtube\.com|vimeo.com)/} ) {
 			if( !has_video($eprint) ) {
 				EPrints::DataObj::EventQueue->create_unique( $repo, {
 					pluginid => "Import::Youtube",
@@ -329,7 +332,7 @@ sub download_video_daemon
 
 	URL: foreach my $url (@urls)
 	{
-		next URL if $url !~ m{^http://(www\.youtube\.com|vimeo.com)/};
+		next URL if $url !~ m{^https?://(www\.youtube\.com|vimeo.com)/};
 
 		next URL if has_video($eprint, $url); # already downloaded
 
@@ -395,21 +398,21 @@ sub run_youtube_player
 	if( $eprint->exists_and_set( "official_url" ) )
 	{
 		my $url = $eprint->value( "official_url" );
-		if( $url =~ m{^https?://www\.youtube\.com/.*\bv=([^;&]+)} )
+		if( $url =~ m{^(https?)://www\.youtube\.com/.*\bv=([^;&]+)} )
 		{
 			$frag->appendChild( $repo->xml->create_element( "iframe",
 						width => 420,
 						height => 315,
-						src => sprintf("youtube.com/embed/%s", $1),
+						src => sprintf("$1://www.youtube.com/embed/%s", $2),
 						frameborder => 0,
 						allowfullscreen => "yes"
 					) );
 		}
-		elsif( $url =~ m{^https?://vimeo.com/(\d+)} ) {
+		elsif( $url =~ m{^(https?)://vimeo.com/(\d+)} ) {
 			$frag->appendChild( $repo->xml->create_element( "iframe",
 						width => 500,
 						height => 281,
-						src => sprintf("//player.vimeo.com/video/%s", $1),
+						src => sprintf("$1://player.vimeo.com/video/%s", $2),
 						frameborder => 0,
 						allowfullscreen => "yes"
 					) );

@@ -11,19 +11,20 @@
 ###                                                 ###
 #######################################################
 
-# The location of the DROID JAR file
+# You can install youtube-dl from the following link
+# https://github.com/rg3/youtube-dl/
+# you might need to change the location of the script
 $c->{"executables"}->{"youtubedl"} = '/usr/bin/youtube-dl';
 
-# Invocation syntax
-$c->{"invocation"}->{"youtube-filename"} = '$(youtubedl) --get-filename $(VIDURL)';
-$c->{"invocation"}->{"youtube-download"} = '$(youtubedl) -o $(OUTPUT) $(VIDURL)';
-
+# Change from zero to one in order to disable the plugin
 $c->{plugins}{"Import::Youtube"}{params}{disable} = 0;
 
-# when a youtube-imported eprint is committed, trigger downloading the video
-# (if it doesn't already have it)
-$c->add_dataset_trigger(
-	"eprint",
-	EP_TRIGGER_AFTER_COMMIT,
-	\&EPrints::Plugin::Import::Youtube::trigger_download_video
-);
+# To add a Videos (external) tab to Kultur modify kultur.pl to the following:
+#        my @tabs = (
+#                # render youtube player
+#                &kultur_render_youtube( $session, $dataset, $eprint, \@docs ),
+#                # render document tab(s)
+#                &kultur_render_documents( $session, $dataset, $eprint, \@docs ),
+#                # render metadata tab(s)
+#                $metadata_tab
+#        );
