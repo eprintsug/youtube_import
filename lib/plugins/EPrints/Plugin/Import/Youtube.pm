@@ -329,6 +329,9 @@ sub download_video_daemon
 	if ($eprint->exists_and_set( "related_url" )) {
 		push @urls, @{$eprint->value( "related_url_url" )};
 	}
+	if ($eprint->exists_and_set( "source" )) {
+		push @urls, $eprint->value( "source" );
+	}
 
 	URL: foreach my $url (@urls)
 	{
