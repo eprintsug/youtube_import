@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<epm xmlns='http://eprints.org/ep2/data/2.0' id='http://192.168.23.142/id/epm/youtube_import'>
+<epm xmlns='http://eprints.org/ep2/data/2.0' id='http://template.ulcc.ac.uk/id/epm/youtube_import'>
   <epmid>youtube_import</epmid>
   <uri>http://192.168.23.142/id/epm/youtube_import</uri>
   <documents>
@@ -25,9 +25,9 @@
           <datasetid>document</datasetid>
           <filename>plugins/EPrints/Plugin/Import/Youtube.pm</filename>
           <mime_type>text/plain</mime_type>
-          <hash>0d33cafdb67d4d5d8552127dcc439fe7</hash>
+          <hash>626835d927736d7075f6480495b60284</hash>
           <hash_type>MD5</hash_type>
-          <filesize>9270</filesize>
+          <filesize>9359</filesize>
         </file>
         <file>
           <datasetid>document</datasetid>
@@ -49,17 +49,17 @@
           <datasetid>document</datasetid>
           <filename>cfg.d/youtube_internal.pl</filename>
           <mime_type>text/plain</mime_type>
-          <hash>6b38b21be4fa55cf9328b916763c51cb</hash>
+          <hash>d735bf1c3b40fcd5f37bdd959bccddc0</hash>
           <hash_type>MD5</hash_type>
-          <filesize>1392</filesize>
+          <filesize>1056</filesize>
         </file>
         <file>
           <datasetid>document</datasetid>
           <filename>epm/youtube_import/cfg/cfg.d/youtube_import.pl</filename>
           <mime_type>text/plain</mime_type>
-          <hash>f6136ae3bf7733e713224f0c5ca1eae2</hash>
+          <hash>e187625a71fe434f595a335ac08192c9</hash>
           <hash_type>MD5</hash_type>
-          <filesize>1421</filesize>
+          <filesize>1397</filesize>
         </file>
       </files>
       <mime_type>text/plain</mime_type>
@@ -83,7 +83,7 @@
       <content>coverimage</content>
     </document>
   </documents>
-  <version>1.0.6</version>
+  <version>1.1</version>
   <controller>Screen::EPMC::Youtube_Import</controller>
   <creators>
     <item>
@@ -94,7 +94,7 @@
       <id>you@email.address</id>
     </item>
   </creators>
-  <datestamp>2018-11-07 20:51:10</datestamp>
+  <datestamp>2020-04-06 02:57:33</datestamp>
   <title>Youtube Import</title>
   <description>This is the description.</description>
   <requirements>The following modules are required: X, Y, Z</requirements>
