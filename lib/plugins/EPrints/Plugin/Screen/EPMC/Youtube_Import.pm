@@ -43,7 +43,7 @@ sub action_enable
     my $r = EPrints::Utils::wget( $repo, $youtube_dl_source, $youtube_dl_target );
 	
     if( !$r->is_success ){
-        print STDERR "There may havce been an issue dowbloading youtube-dl: $r->status_line . \n\nMaybe try https://ytdl-org.github.io/youtube-dl/download.html to obtain this.\n";    
+        print STDERR "There may have been an issue downloading youtube-dl: $r->status_line. \n\nMaybe try https://ytdl-org.github.io/youtube-dl/download.html to obtain the binary.\n";    
     }
 
 	$self->reload_config if !$skip_reload;
