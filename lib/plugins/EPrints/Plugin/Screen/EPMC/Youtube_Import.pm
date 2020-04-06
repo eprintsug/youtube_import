@@ -33,8 +33,19 @@ sub action_enable
 {
 	my( $self, $skip_reload ) = @_;
 
-     	$self->SUPER::action_enable( $skip_reload );
- 
+    $self->SUPER::action_enable( $skip_reload );
+    my $repo =  $self->{repository};
+   
+    my $youtube_dl_source = $repo->get_conf("youtube-dl", "source") || "https://yt-dl.org/downloads/latest/youtube-dl";
+    my $youtube_dl_target = $repo->get_conf("youtube-dl", "target") || $repo->get_conf("archiveroot")."/bin/youtube-dl";
+    $repo->{config}->{enable_web_imports} = 1;
+
+    my $r = EPrints::Utils::wget( $repo, $youtube_dl_source, $youtube_dl_target );
+	
+    if( !$r->is_success ){
+        print STDERR "There may havce been an issue dowbloading youtube-dl: $r->status_line . \n\nMaybe try https://ytdl-org.github.io/youtube-dl/download.html to obtain this.\n";    
+    }
+
 	$self->reload_config if !$skip_reload;
 }
 
