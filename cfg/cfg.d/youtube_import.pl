@@ -13,9 +13,10 @@
 
 # The location of the youtube-dl. This will default to the values 
 # below which are also used in the enable process to put the most recent 
-# youtube-dl in place. Uncomment and change as required.
-#$c->{"youtube-dl"}->{"source"} = "https://yt-dl.org/downloads/latest/youtube-dl";
-#$c->{"youtube-dl"}->{"target"} = $c->{archiveroot}."/bin/youtube-dl';
+# youtube-dl in place. Change as required, then reenable plugin 
+# for change to take effect
+$c->{"youtube-dl"}->{"source"} = "https://yt-dl.org/downloads/latest/youtube-dl";
+$c->{"youtube-dl"}->{"target"} = $c->{archiveroot}."/bin/youtube-dl";
 
 $c->{"executables"}->{"youtubedl"} = $c->{"youtube-dl"}->{"target"};
 
