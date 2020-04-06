@@ -33,9 +33,9 @@
           <datasetid>document</datasetid>
           <filename>plugins/EPrints/Plugin/Screen/EPMC/Youtube_Import.pm</filename>
           <mime_type>text/plain</mime_type>
-          <hash>7f4273b5f4e89dcd4e2731e9edd85067</hash>
+          <hash>089a92650fb3f79f348fbb3be45097af</hash>
           <hash_type>MD5</hash_type>
-          <filesize>2880</filesize>
+          <filesize>2960</filesize>
         </file>
         <file>
           <datasetid>document</datasetid>
@@ -57,9 +57,9 @@
           <datasetid>document</datasetid>
           <filename>epm/youtube_import/cfg/cfg.d/youtube_import.pl</filename>
           <mime_type>text/plain</mime_type>
-          <hash>e187625a71fe434f595a335ac08192c9</hash>
+          <hash>0c8b46161ebed2d4208e38e40c27de3d</hash>
           <hash_type>MD5</hash_type>
-          <filesize>1397</filesize>
+          <filesize>1673</filesize>
         </file>
       </files>
       <mime_type>text/plain</mime_type>
@@ -94,7 +94,7 @@
       <id>you@email.address</id>
     </item>
   </creators>
-  <datestamp>2020-04-06 07:12:51</datestamp>
+  <datestamp>2020-04-06 09:03:17</datestamp>
   <title>Youtube Import</title>
   <description>This is the description.</description>
   <requirements>The following modules are required: X, Y, Z</requirements>
