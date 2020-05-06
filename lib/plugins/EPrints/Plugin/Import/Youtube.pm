@@ -42,11 +42,15 @@ sub input_fh
 	my $dataset = $opts{dataset};
 
 	my $fh = $opts{"fh"};
- 
+
+	my $youtube_url;
+
 	while(defined(my $url = <$fh>))
 	{
 		chomp($url);
 		next if $url !~ m{^https?:};
+
+		$youtube_url = $url;    
 
 		my $epdata = $self->url_to_epdata($url);
 
@@ -55,11 +59,19 @@ sub input_fh
 		push @ids, $dataobj->id if defined $dataobj;
 	}
 
-	return EPrints::List->new(
+	my $list = EPrints::List->new(
 		session => $self->{session},
 		dataset => $opts{dataset},
 		ids => \@ids
 	);
+
+	# we've created an eprint based on this url, (or we didn't need to if the eprint wasn't brand new), now actually get the video
+	if( $list->count == 1 )
+	{
+		$self->trigger_download_video( $repo, $list->item( 0 ), $youtube_url );
+	}   
+
+	return $list;
 }
 
 sub url_to_epdata 
@@ -231,32 +243,24 @@ sub meta_youtube
 
 sub trigger_download_video
 {
-	my %params = @_;
-
-	my $repo = $params{repository};
-	my $eprint = $params{dataobj};
-
-	if( $eprint->exists_and_set( "source" )) {
-		my $url = $eprint->value( "source" );
-
-		if( $url =~ m{^https?://(www\.youtube\.com|vimeo.com)/} ) {
-			if( !has_video($eprint) ) {
-				EPrints::DataObj::EventQueue->create_unique( $repo, {
-					pluginid => "Import::Youtube",
-					action => "download_video",
-					params => [$eprint->internal_uri],
-				});
-			}
-		}
+	my ( $self, $repo, $eprint, $url ) = @_;
+	if( $url =~ m{^https?://(www\.youtube\.com)/} ) # is it a valid url?
+	{
+		if( !has_video($eprint, $url) ) # do we already have video associated with this url?
+		{
+			EPrints::DataObj::EventQueue->create_unique( $repo, {
+				pluginid => "Import::Youtube",
+				action => "download_video",
+				params => [$eprint->internal_uri, $url],
+			});
+		}	
 	}
 }
 
 sub has_video
 {
 	my ($eprint, $url) = @_;
-
 	my $has_copy = 0;
-
 	DOC: foreach my $doc ($eprint->get_all_documents)
 	{
 		foreach my $rel (@{$doc->value( "relation" )})
@@ -266,7 +270,7 @@ sub has_video
 				(!defined $url || $url eq $rel->{uri})
 			  )
 			{
-				$has_copy = 1;
+   				$has_copy = 1;
 				last DOC;
 			}
 		}
@@ -277,8 +281,7 @@ sub has_video
 
 sub download_video
 {
-	my( $self, $eprint ) = @_;
-
+	my( $self, $eprint, $url ) = @_;
 	my $repo = $eprint->{session};
 
 	my $repoid = $repo->{id};
@@ -300,7 +303,7 @@ chdir('/');
 umask 0;
 
 my \$repo = EPrints->new->repository('$repoid');
-\$repo->plugin('Import::Youtube')->download_video_daemon('$eprintid');
+\$repo->plugin('Import::Youtube')->download_video_daemon('$eprintid','$url');
 EOP
 
 	system(
@@ -314,68 +317,88 @@ EOP
 
 sub download_video_daemon
 {
-	my ($self, $eprintid) = @_;
-
+	my ( $self, $eprintid, $url ) = @_;
 	my $repo = $self->{session};
-
 	my $eprint = $repo->dataset('eprint')->dataobj($eprintid);
 
 	return if !defined $eprint; # eprint has gone away
 
-	my @urls;
-	if ($eprint->exists_and_set( "official_url" )) {
-		push @urls, $eprint->value( "official_url" );
-	}
-	if ($eprint->exists_and_set( "related_url" )) {
-		push @urls, @{$eprint->value( "related_url_url" )};
-	}
-	if ($eprint->exists_and_set( "source" )) {
-		push @urls, $eprint->value( "source" );
-	}
+	# START COMMENTING OUT - we now get our URL straight from the upload screen, not the EPrint metadata
+	#my @urls;
+	#if ($eprint->exists_and_set( "official_url" )) {
+	#	push @urls, $eprint->value( "official_url" );
+	#}
+	#if ($eprint->exists_and_set( "related_url" )) {
+	#	push @urls, @{$eprint->value( "related_url_url" )};
+	#}
+	#if ($eprint->exists_and_set( "source" )) {
+	#	push @urls, $eprint->value( "source" );
+	#}
+	# END COMMENTING OUT
 
-	URL: foreach my $url (@urls)
+	return if $url !~ m{^https?://(www\.youtube\.com)/};
+	return if has_video( $eprint, $url ); # already downloaded
+	my $tmp = File::Temp->new;
+
+	EPrints::Platform::read_exec($repo, $tmp, 'youtube-filename',
+	    VIDURL => $url,
+	);
+
+	my $filename = <$tmp>;
+	chomp($filename);
+
+	$tmp = File::Temp->new;
+	$tmp = "$tmp";
+
+	EPrints::Platform::exec($repo, 'youtube-download',
+		VIDURL => $url,
+		OUTPUT => $tmp,
+	);
+	open(my $fh, "<", $tmp);
+
+	my $doc = $eprint->create_subdataobj( "documents", {
+		main => $filename,
+		format => "video",
+		files => [{
+			filename => $filename,
+			filesize => (-s $fh),
+			_content => $fh,
+		}],
+		relation => [
+			{
+				type => EPrints::Utils::make_relation( "isYoutubeVideo" ),
+				uri => $url,
+			},
+		],
+	});
+       
+	close($fh);
+	unlink($tmp);
+
+	# finally, set the mime_type
+	my( $file ) = $doc->stored_file( $doc->value( "main" ) );
+	return if !defined $file;
+
+	$fh = $file->get_local_copy;
+	return if !defined $fh;
+
+	$repo->run_trigger( EPrints::Const::EP_TRIGGER_MEDIA_INFO,
+		filename => "$fh",
+		filepath => "$fh",
+		epdata => my $media_info = {},
+	);
+
+	my $dataset = $repo->dataset( "document" );
+	foreach my $fieldid (keys %$media_info)
 	{
-		next URL if $url !~ m{^https?://(www\.youtube\.com|vimeo.com)/};
-
-		next URL if has_video($eprint, $url); # already downloaded
-
-		my $tmp = File::Temp->new;
-
-		EPrints::Platform::read_exec($repo, $tmp, 'youtube-filename',
-			VIDURL => $url,
-			);
-
-		my $filename = <$tmp>;
-		chomp($filename);
-
-		$tmp = File::Temp->new;
-		$tmp = "$tmp";
-
-		EPrints::Platform::exec($repo, 'youtube-download',
-			VIDURL => $url,
-			OUTPUT => $tmp,
-		);
-		open(my $fh, "<", $tmp);
-
-		$eprint->create_subdataobj( "documents", {
-			main => $filename,
-			format => "video",
-			files => [{
-				filename => $filename,
-				filesize => (-s $fh),
-				_content => $fh,
-			}],
-			relation => [
-				{
-					type => EPrints::Utils::make_relation( "isYoutubeVideo" ),
-					uri => $url,
-				},
-			],
-		});
-
-		close($fh);
-		unlink($tmp);
+		next if !$dataset->has_field( $fieldid );
+		$doc->set_value( $fieldid, $media_info->{$fieldid} );
 	}
+
+	$file->set_value( "mime_type", $media_info->{mime_type} );
+
+	$file->commit;
+	$doc->commit;
 
 	return;
 }
