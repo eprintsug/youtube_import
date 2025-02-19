@@ -323,20 +323,7 @@ sub download_video_daemon
 
 	return if !defined $eprint; # eprint has gone away
 
-	# START COMMENTING OUT - we now get our URL straight from the upload screen, not the EPrint metadata
-	#my @urls;
-	#if ($eprint->exists_and_set( "official_url" )) {
-	#	push @urls, $eprint->value( "official_url" );
-	#}
-	#if ($eprint->exists_and_set( "related_url" )) {
-	#	push @urls, @{$eprint->value( "related_url_url" )};
-	#}
-	#if ($eprint->exists_and_set( "source" )) {
-	#	push @urls, $eprint->value( "source" );
-	#}
-	# END COMMENTING OUT
-
-	return if $url !~ m{^https?://(www\.youtube\.com)/};
+	return if $url !~ m{^https?://(www\.youtube\.com|vimeo.com)/};
 	return if has_video( $eprint, $url ); # already downloaded
 	my $tmp = File::Temp->new;
 
@@ -347,7 +334,7 @@ sub download_video_daemon
 	my $filename = <$tmp>;
 	chomp($filename);
 
-	$tmp = File::Temp->new;
+	$tmp = File::Temp->new( SUFFIX => '.bin' );
 	$tmp = "$tmp";
 
 	EPrints::Platform::exec($repo, 'youtube-download',
@@ -355,6 +342,16 @@ sub download_video_daemon
 		OUTPUT => $tmp,
 	);
 	open(my $fh, "<", $tmp);
+
+	$repo->run_trigger( EPrints::Const::EP_TRIGGER_MEDIA_INFO,
+		filename => "$tmp",
+		filepath => "$tmp",
+		epdata => my $media_info = {},
+	);
+
+	my $file_ext_map = $repo->config( 'youtube_import', 'mime_to_ext' );
+	my $file_ext = $file_ext_map->{$media_info->{mime_type}};
+	$filename .= ".$file_ext";
 
 	my $doc = $eprint->create_subdataobj( "documents", {
 		main => $filename,
@@ -381,12 +378,6 @@ sub download_video_daemon
 
 	$fh = $file->get_local_copy;
 	return if !defined $fh;
-
-	$repo->run_trigger( EPrints::Const::EP_TRIGGER_MEDIA_INFO,
-		filename => "$fh",
-		filepath => "$fh",
-		epdata => my $media_info = {},
-	);
 
 	my $dataset = $repo->dataset( "document" );
 	foreach my $fieldid (keys %$media_info)
