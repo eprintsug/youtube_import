@@ -249,6 +249,7 @@ sub trigger_download_video
 		if( !has_video($eprint, $url) ) # do we already have video associated with this url?
 		{
 			EPrints::DataObj::EventQueue->create_unique( $repo, {
+				ignore_edit_lock => "TRUE",
 				pluginid => "Import::Youtube",
 				action => "download_video",
 				params => [$eprint->internal_uri, $url],
